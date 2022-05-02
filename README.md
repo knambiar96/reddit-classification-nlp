@@ -1,181 +1,42 @@
-# ![](https://ga-dash.s3.amazonaws.com/production/assets/logo-9f88ae6c9c3871690e33280fcf557f33.png) Project 3: Web APIs & NLP
+# ![](https://ga-dash.s3.amazonaws.com/production/assets/logo-9f88ae6c9c3871690e33280fcf557f33.png) Project 3: Natural Language Processing on cooking subreddits
 
-### Description
+#### by Karthik Nambiar
 
-In week four we've learned about a few different classifiers. In week five we'll learn about webscraping, APIs, and Natural Language Processing (NLP). This project will put those skills to the test.
+## Executive Summary
 
-For project 3, your goal is two-fold:
-1. Using [Pushshift's](https://github.com/pushshift/api) API, you'll collect posts from two subreddits of your choosing.
-2. You'll then use NLP to train a classifier on which subreddit a given post came from. This is a binary classification problem.
+In the attached project notebooks, we analyze the r/Cooking and r/CookingforBeginners subreddits over the past 4 years using Natural Language Processing. We use a couple features, like domain and the time it was created, but the majority of analysis is on the post titles and the self-text. Our focus was trying to classify post titles and post content text based on what subreddit they came from. To that end, we used multiple classifiers and multiple techniques on both the titles of the post and post content text. 
 
+This work has major implications for industry and reddit at large. In general, it can be hard to manage 2 similar subreddits. By looking at what factors make a 'Cookingforbeginners' post, you can move more people to that subreddit and even be able to predict using an automoderator that certain posts should be flagged as potentially belonging there. In a more general sense, if companies can find how beginner chefs talk or what kind of words they tend to use, they can use this information to either sell them knives or pots or training services or otherwise use that data to improve their own services and how they should market their goods.
 
-#### About the API
+Through our process, we were able to accurately predict 64.5% of posts based on their post text and 63.3% of posts based on their title. This is compared to the baseline of 50%. This is actually an impressive improvement given the limitations of the data nd the similarity between the subreddits. We have also gained useful information about what features were important in this model and why. Our process started with some methods. One was using a simple CountVectorizer to drop the titles into an understandable bag of words and a LogisticRegression. This was the base of our model and hit around 60% accuracy on post text and title. Then, we tried various techniques, such as a tfidfvectorizer in lieu of a countvectorizer, or Random Forest Classifiers, Extra Trees Classifiers, Adaboost, Gaussian Naive Bayes, and Multinomial Bayes in lieu of the LogisticRegression. Then, we took all those models, and searched over relevant hyperparameters and tried to maximize our accuracy score. Along the way, we also tried lemmatizing the data (converting it to a base dictionary form) using spacy and testing if that improved anything. In both self-text and titles, we found the best model was a mixture of models that would cover the blind spots of the other models- in particular, Multinomial Bayes, ExtraTrees, and RandomTreesClassifier, one using lemmatized data, turned out to yield the largest scores that were mentioned in the beginning. What we found to be the most important features were often helper verbs and joiner words, but furthermore, it seemed that users of 'r/CookingforBeginners' tended to use words like 'recipe', 'to help', 'make', and 'chicken' in their posts more. These are important- and in particular, the 'chicken' example might say something interest about what a starter cook might use as their go-to for meal-prep.
 
-Pushshift's API is fairly straightforward. For example, if I want the posts from [`/r/boardgames`](https://www.reddit.com/r/boardgames), all I have to do is use the following url: https://api.pushshift.io/reddit/search/submission?subreddit=boardgames
+This work is promising and there are multiple ways we can improve on it, given support. We believe we can get more predictive results by combining all features together- in particular adding comments as a feature to help prediction and understanding their usage. Sentiment analysis could be interesting in its usage to determine how in general, users of these subreddits may differ in emotional valence. we also think that there would be a benefit at looking to see how the subreddit and its community changed over the past 4 years to see if perhaps a more restricted dataset could contribute more information and avoid issues where a subreddit culture has profoundly changed over time to the point that it's hard to find a commonality (as would be needed in our machine learning models). Beyond that, more complicated transformers (such as BERT) are available to provide more information than the methods we have used so far or better lemmitization (using a more thorough version of spacy). We might also be interested in carefully comparing which posts were classified incorrectly and thinking carefully about how to rectify that problem. Beyond that, more compute time to optimize better could be useful, or even creating a preliminary bot that identifies and flags potential sub posts that wouldn't fit in the sub guidelines and would perhaps be better off in the other subreddit.
 
-To help you get started, we have a primer video on how to use the API: https://youtu.be/AcrjEWsMi_E
+## Coda- Brief discussion of data sources
 
----
-## Checkpoints and Advice
+As mentioned before, in this dataset, we used PushShift API and reddit to grab data. We'll describe briefly the variables used, and then explain the various pipelines/gridsearches. Please keep in mind the conventions used in this data. In short, with a notebook, any number is used to tie all estimators using the same series of estimators (ex: CountVectorizer->LogReg might be pipe1, gridsearch1, randomsearchcv1, paramlist1, etc). Furthermore, subscription of numbers (ex: 4_1) refers to a further modification by testing different hyperparameters, but still the same series of estimators. Similarly, subscripted *alt* refers to using a lemmatized dataset.
 
-If you aren't familiar with [reddit](https://www.reddit.com/), go check it out and browse different subreddits. Each subreddit is like a forum on a different topic. [Here's a list of subreddits by topic.](https://www.reddit.com/r/ListOfSubreddits/wiki/listofsubreddits)
-
-- In your project you can classify posts, comments, titles, or some combination of those things. What you choose will partly determine how difficult your data cleaning will be and how challenging the classification task will be for your algorithms. In your presentation and executive summary, **tell us what you used**.
-- You can also include other information from posts or comments as features, but you must include some text.
-- You can make the project more challenging by choosing subreddits that are more similar.
-- **By the EOD Friday, 4/22/2022, you must input your chosen subreddits into [this google doc.](https://docs.google.com/spreadsheets/d/170buASiuu6NmJjCBlsnHHgyPobOGO0sDKFaTTvxMbsc/edit#gid=0) You may not choose the same two subreddits as one of your peers: first come, first served.** Please include a breakdown of the post count for each as well.
-- You should aim to have a function built to pull down data from the API by this date (4/22/22) as well.
-- The more data you can pull the better for your classifier. **You will want data from at least 3000 unique, non-null posts from each subreddit.**
-
----
-
-### Requirements
-
-- Gather and prepare your data using the `requests` library.
-- **Create and compare at least two models**. These can be any classifier of your choosing: logistic regression, Naive Bayes, KNN, SVM, Random Forest Classifier, etc.
-  - **Bonus**: use a Naive Bayes classifier
-- You **must** build a robust commit history on GHE for this project, with the first commit no later than next Monday, 4/25/22.
-- A Jupyter Notebook with your analysis for a peer audience of data scientists.
-- An executive summary of your results.
-- A short presentation outlining your process and findings for a semi-technical audience.
-
-**Pro Tip:** You can find a good example executive summary [here](https://www.proposify.biz/blog/executive-summary).
-
----
-
-### Necessary Deliverables / Submission
-
-- Code and executive summary must be in a clearly commented Jupyter Notebook.
-- You must submit your slide deck.
-- Materials must be submitted by **11:59 PM EST on Monday, May 2nd 2022**.
-- Presentation must be ready by **09:00 AM EST on Monday, May 2nd 2022**.
-
----
-
-## Rubric
-You should make sure that you consider and/or follow most if not all of the considerations/recommendations outlined below **while** working through your project.
-
-For Project 3 the evaluation categories are as follows:<br>
-**The Data Science Process**
-- Problem Statement
-- Data Collection
-- Data Cleaning & EDA
-- Preprocessing & Modeling
-- Evaluation and Conceptual Understanding
-- Conclusion and Recommendations
-
-**Organization and Professionalism**
-- Organization
-- Visualizations
-- Python Syntax and Control Flow
-- Presentation
-
-**Scores will be out of 30 points based on the 10 categories in the rubric.** <br>
-*3 points per section*<br>
-
-| Score | Interpretation |
-| --- | --- |
-| **0** | *Project fails to meet the minimum requirements for this item.* |
-| **1** | *Project meets the minimum requirements for this item, but falls significantly short of portfolio-ready expectations.* |
-| **2** | *Project exceeds the minimum requirements for this item, but falls short of portfolio-ready expectations.* |
-| **3** | *Project meets or exceeds portfolio-ready expectations; demonstrates a thorough understanding of every outlined consideration.* |
-
-
-### The Data Science Process
-
-**Problem Statement**
-- Is it clear what the goal of the project is?
-- What type of model will be developed?
-- How will success be evaluated?
-- Is the scope of the project appropriate?
-- Is it clear who cares about this or why this is important to investigate?
-- Does the student consider the audience and the primary and secondary stakeholders?
-
-**Data Collection**
-- Was enough data gathered to generate a significant result?
-- Was data collected that was useful and relevant to the project?
-- Was data collection and storage optimized through custom functions, pipelines, and/or automation?
-- Was thought given to the server receiving the requests such as considering number of requests per second?
-
-**Data Cleaning and EDA**
-- Are missing values imputed/handled appropriately?
-- Are distributions examined and described?
-- Are outliers identified and addressed?
-- Are appropriate summary statistics provided?
-- Are steps taken during data cleaning and EDA framed appropriately?
-- Does the student address whether or not they are likely to be able to answer their problem statement with the provided data given what they've discovered during EDA?
-
-**Preprocessing and Modeling**
-- Is text data successfully converted to a matrix representation?
-- Are methods such as stop words, stemming, and lemmatization explored?
-- Does the student properly split and/or sample the data for validation/training purposes?
-- Does the student test and evaluate a variety of models to identify a production algorithm (**AT MINIMUM:** two classification models, **BONUS:** try a Naive Bayes)?
-- Does the student defend their choice of production model relevant to the data at hand and the problem?
-- Does the student explain how the model works and evaluate its performance successes/downfalls?
-
-**Evaluation and Conceptual Understanding**
-- Does the student accurately identify and explain the baseline score?
-- Does the student select and use metrics relevant to the problem objective?
-- Does the student interpret the results of their model for purposes of inference?
-- Is domain knowledge demonstrated when interpreting results?
-- Does the student provide appropriate interpretation with regards to descriptive and inferential statistics?
-
-**Conclusion and Recommendations**
-- Does the student provide appropriate context to connect individual steps back to the overall project?
-- Is it clear how the final recommendations were reached?
-- Are the conclusions/recommendations clearly stated?
-- Does the conclusion answer the original problem statement?
-- Does the student address how findings of this research can be applied for the benefit of stakeholders?
-- Are future steps to move the project forward identified?
-
-
-### Organization and Professionalism
-
-**Project Organization**
-- Are modules imported correctly (using appropriate aliases)?
-- Are data imported/saved using relative paths?
-- Does the README provide a good executive summary of the project?
-- Is markdown formatting used appropriately to structure notebooks?
-- Are there an appropriate amount of comments to support the code?
-- Are files & directories organized correctly?
-- Are there unnecessary files included?
-- Do files and directories have well-structured, appropriate, consistent names?
-- Is there a robust commit history?
-
-**Visualizations**
-- Are sufficient visualizations provided?
-- Do plots accurately demonstrate valid relationships?
-- Are plots labeled properly?
-- Are plots interpreted appropriately?
-- Are plots formatted and scaled appropriately for inclusion in a notebook-based technical report?
-
-**Python Syntax and Control Flow**
-- Is care taken to write human readable code?
-- Is the code syntactically correct (no runtime errors)?
-- Does the code generate desired results (logically correct)?
-- Does the code follows general best practices and style guidelines?
-- Are Pandas functions used appropriately?
-- Are `sklearn` and `NLTK` methods used appropriately?
-
-**Presentation**
-- Is the problem statement clearly presented?
-- Does a strong narrative run through the presentation building toward a final conclusion?
-- Are the conclusions/recommendations clearly stated?
-- Is the level of technicality appropriate for the intended audience?
-- Is the student substantially over or under time?
-- Does the student appropriately pace their presentation?
-- Does the student deliver their message with clarity and volume?
-- Are appropriate visualizations generated for the intended audience?
-- Are visualizations necessary and useful for supporting conclusions/explaining findings?
-
-
----
-
-### Why did we choose this project for you?
-This project covers three of the biggest concepts we cover in the class: Classification Modeling, Natural Language Processing and Data Wrangling/Acquisition.
-
-Part 1 of the project focuses on **Data wrangling/gathering/acquisition**. This is a very important skill as not all the data you will need will be in clean CSVs or a single table in SQL.  There is a good chance that wherever you land you will have to gather some data from some unstructured/semi-structured sources; when possible, requesting information from an API, but often scraping it because they don't have an API (or it's terribly documented).
-
-Part 2 of the project focuses on **Natural Language Processing** and converting standard text data (like Titles and Comments) into a format that allows us to analyze it and use it in modeling.
-
-Part 3 of the project focuses on **Classification Modeling**.  Given that project 2 was a regression focused problem, we needed to give you a classification focused problem to practice the various models, means of assessment and preprocessing associated with classification.   
+|Feature|Notebook|Description|
+|---|---|---|
+|**created_utc**|*all*|Time at which post was created (UTC seconds)|
+|**domain**|*all*|Host domain of post-self posts are the subreddit, videos from where the video came from|
+|**selftext**|*all*|Post text|
+|**title**|*all*|Title of post|
+|**subreddit_subscribers**|*all*|Number of subscribers to subreddit at time of posting|
+|**body**|*all*|Body of the comment|
+|**permalink**|*all*|Link to comment in question|
+|**sub**|*all*|Classification sub name (r/Cooking or r/C4B)|
+|**X_tr/telemma**|*p3*|Lemmatized X_train/test using spacy en_core_web_sm|
+|**pipe1**|*p2*|(CountVectorizer,LogisticRegression)|
+|**pipe2**|*p2*|(CountVectorizer,RandomForestClassifier)|
+|**pipe3**|*p2*|(CountVectorizer,ExtraTreesClassifier)|
+|**pipe4**|*p2*|(CountVectorizer,AdaBoostclassifier)|
+|**vc**|*p2*|VotingClassifier(pipe1,rsc2,rsc3)|
+|**pipe1**|*p3*|(CountVectorizer,LogisticRegression)|
+|**pipe3**|*p3*|(CountVectorizer,AdaBoostClassifier)|
+|**pipe4**|*p3*|(CountVectorizer,RandomForestClassifier)|
+|**pipe5**|*p3*|(CountVectorizer,MultinomialNb)|
+|**pipe6**|*p3*|(CountVectorizer,ExtraTreesClassifer)|
+|**pipe7**|*p3*|(TfidfVectorizer,ft.todense(),GaussianNB)|
+|**vc**|*p3*|VotingClassifier(gs5,rsc6,rsc5_alt)|
+|**vc2**|*p3*|VotingClassifier(rsc4_1,rsc6,rsc5alt)|
